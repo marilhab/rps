@@ -1,0 +1,314 @@
+<div class="min-h-screen bg-gray-100">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Rock Paper Scissors Battle</h1>
+      <p class="text-gray-600 transition-transform duration-150">Game #<%= @game.id %> • Round <%= @game.current_round %></p>
+    </div>
+
+    <!-- Game Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white rounded-lg shadow p-4 text-center border-l-4 border-red-500">
+        <div class="text-2xl mb-1">🪨</div>
+        <div class="text-xl font-bold text-gray-800"><%= @counts['rock'] %></div>
+        <div class="text-sm text-gray-600">Rocks</div>
+        <div class="text-xs text-red-600 mt-1">Kills: <%= @kill_counts['rock'] %></div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow p-4 text-center border-l-4 border-blue-500">
+        <div class="text-2xl mb-1">📄</div>
+        <div class="text-xl font-bold text-gray-800"><%= @counts['paper'] %></div>
+        <div class="text-sm text-gray-600">Papers</div>
+        <div class="text-xs text-blue-600 mt-1">Kills: <%= @kill_counts['paper'] %></div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow p-4 text-center border-l-4 border-green-500">
+        <div class="text-2xl mb-1">✂️</div>
+        <div class="text-xl font-bold text-gray-800"><%= @counts['scissors'] %></div>
+        <div class="text-sm text-gray-600">Scissors</div>
+        <div class="text-xs text-green-600 mt-1">Kills: <%= @kill_counts['scissors'] %></div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow p-4 text-center border-l-4 border-purple-500">
+        <div class="text-2xl mb-1">🎯</div>
+        <div class="text-xl font-bold text-gray-800"><%= @counts.values.sum %></div>
+        <div class="text-sm text-gray-600">Total</div>
+      </div>
+    </div>
+
+    <!-- Game Status -->
+    <div class="text-center mb-8">
+      <% if @game.game_state == 'running' %>
+        <div class="inline-block bg-yellow-100 border border-yellow-400 rounded-lg p-4">
+          <div class="text-yellow-800 font-semibold">⚔️ Battle in Progress</div>
+          <div class="text-yellow-700 text-sm">Round <%= @game.current_round %></div>
+        </div>
+      <% else %>
+        <div class="inline-block bg-green-100 border border-green-400 rounded-lg p-4">
+          <div class="text-green-800 font-semibold">🏆 Winner: <%= @game.winner&.titleize %></div>
+          <div class="text-green-700 text-sm">Game Complete!</div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex flex-wrap justify-center gap-4 mb-8">
+      <% if @game.game_state == 'running' %>
+        <button id="next-round-btn" class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95">
+          Next Round
+        </button>
+        <button id="auto-play-btn" class="bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95">
+          Auto Complete
+        </button>
+        <button id="auto-play-slow-btn" class="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95">
+          Slow Auto
+        </button>
+        <button id="stop-auto-btn" class="bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 hidden">
+          Stop
+        </button>
+      <% end %>
+      
+      <%= link_to "Back to Games", games_path, 
+          class: "bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95" %>
+    </div>
+
+    <!-- Game Board -->
+    <div class="flex justify-center mb-8">
+      <div class="bg-white rounded-lg shadow-lg p-6 border">
+        <div class="text-center mb-4">
+          <h3 class="text-lg font-semibold text-gray-800">Battle Field</h3>
+          <p class="text-sm text-gray-600"><%= @game.board_size %>×<%= @game.board_size %> grid</p>
+        </div>
+        
+        <div id="game-board" class="grid gap-1 mx-auto" style="grid-template-columns: repeat(<%= @game.board_size %>, 32px); width: fit-content;">
+          <% @game.board.each_with_index do |row, y| %>
+            <% row.each_with_index do |cell, x| %>
+              <div class="w-8 h-8 rounded border-2 border-gray-200 flex items-center justify-center text-sm font-bold transition-all duration-300 ease-in-out
+                <%= cell == 'rock' ? 'bg-red-100 border-red-300 text-red-700 shadow-md' : '' %>
+                <%= cell == 'paper' ? 'bg-blue-100 border-blue-300 text-blue-700 shadow-md' : '' %>
+                <%= cell == 'scissors' ? 'bg-green-100 border-green-300 text-green-700 shadow-md' : '' %>
+                <%= cell.nil? ? 'bg-gray-50 border-gray-200' : '' %>"
+                data-x="<%= x %>" data-y="<%= y %>"
+                title="<%= cell ? cell.titleize : 'Empty' %>">
+                <%= cell == 'rock' ? '🪨' : cell == 'paper' ? '📄' : cell == 'scissors' ? '✂️' : '' %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Info -->
+    <div class="text-center text-gray-600 text-sm">
+      <p>Board: <%= @game.board_size %>×<%= @game.board_size %> • Elements per type: <%= @game.elements_per_type %></p>
+      <p>Created: <%= @game.created_at.strftime("%B %d, %Y at %I:%M %p") %></p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const gameId = <%= @game.id %>;
+  const nextRoundBtn = document.getElementById('next-round-btn');
+  const autoPlayBtn = document.getElementById('auto-play-btn');
+  const autoPlaySlowBtn = document.getElementById('auto-play-slow-btn');
+  const gameBoard = document.getElementById('game-board');
+  
+  let autoPlayInterval = null;
+  
+  function updateBoard(board) {
+    // Store current board state for animation
+    const currentCells = {};
+    gameBoard.querySelectorAll('[data-x][data-y]').forEach(cell => {
+      const x = parseInt(cell.getAttribute('data-x'));
+      const y = parseInt(cell.getAttribute('data-y'));
+      const type = cell.textContent;
+      if (type) {
+        currentCells[`${x},${y}`] = type;
+      }
+    });
+    
+    // Clear and rebuild board with smooth transitions
+    gameBoard.innerHTML = '';
+    
+    board.forEach((row, y) => {
+      row.forEach((cell, x) => {
+        const cellDiv = document.createElement('div');
+        cellDiv.className = `w-8 h-8 rounded border-2 border-gray-200 flex items-center justify-center text-sm font-bold transition-all duration-300 ease-in-out ${
+          cell === 'rock' ? 'bg-red-100 border-red-300 text-red-700 shadow-md' : 
+          cell === 'paper' ? 'bg-blue-100 border-blue-300 text-blue-700 shadow-md' : 
+          cell === 'scissors' ? 'bg-green-100 border-green-300 text-green-700 shadow-md' : 
+          'bg-gray-50 border-gray-200'
+        }`;
+        cellDiv.setAttribute('data-x', x);
+        cellDiv.setAttribute('data-y', y);
+        cellDiv.title = cell ? cell.charAt(0).toUpperCase() + cell.slice(1) : 'Empty';
+        cellDiv.textContent = cell === 'rock' ? '🪨' : cell === 'paper' ? '📄' : cell === 'scissors' ? '✂️' : '';
+        
+        // Add entrance animation for new elements
+        if (cell && !currentCells[`${x},${y}`]) {
+          cellDiv.style.transform = 'scale(0)';
+          cellDiv.style.opacity = '0';
+          setTimeout(() => {
+            cellDiv.style.transform = 'scale(1)';
+            cellDiv.style.opacity = '1';
+          }, 50);
+        }
+        
+        // Add highlight animation for elements that changed
+        if (cell && currentCells[`${x},${y}`] && currentCells[`${x},${y}`] !== cellDiv.textContent) {
+          cellDiv.style.transform = 'scale(1.2)';
+          setTimeout(() => {
+            cellDiv.style.transform = 'scale(1)';
+          }, 200);
+        }
+        
+        gameBoard.appendChild(cellDiv);
+      });
+    });
+  }
+  
+  function updateCounts(counts, kill_counts) {
+    // Update the count displays
+    document.querySelector('.border-red-500 .text-xl').textContent = counts.rock;
+    document.querySelector('.border-blue-500 .text-xl').textContent = counts.paper;
+    document.querySelector('.border-green-500 .text-xl').textContent = counts.scissors;
+    document.querySelector('.border-purple-500 .text-xl').textContent = counts.rock + counts.paper + counts.scissors;
+    
+    // Update kill counts
+    if (kill_counts) {
+      document.querySelector('.border-red-500 .text-xs').textContent = `Kills: ${kill_counts.rock}`;
+      document.querySelector('.border-blue-500 .text-xs').textContent = `Kills: ${kill_counts.paper}`;
+      document.querySelector('.border-green-500 .text-xs').textContent = `Kills: ${kill_counts.scissors}`;
+    }
+  }
+  
+  function nextRound() {
+    // Add loading state to buttons
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(btn => btn.disabled = true);
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    fetch(`/games/${gameId}/next_round`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+      
+      // Add a small delay for visual effect
+      setTimeout(() => {
+        updateBoard(data.board);
+        updateCounts(data.counts, data.kill_counts);
+        
+        // Update round number with animation
+        const roundText = document.querySelector('p.text-gray-600');
+        roundText.style.transform = 'scale(1.1)';
+        roundText.textContent = `Game #${gameId} • Round ${data.current_round}`;
+        setTimeout(() => {
+          roundText.style.transform = 'scale(1)';
+        }, 150);
+        
+        if (data.game_over) {
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        }
+      }, 100);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred while advancing the round.');
+    })
+    .finally(() => {
+      // Re-enable buttons
+      buttons.forEach(btn => btn.disabled = false);
+    });
+  }
+  
+  function startAutoPlay(interval) {
+    if (autoPlayInterval) {
+      clearInterval(autoPlayInterval);
+    }
+    
+    autoPlayInterval = setInterval(() => {
+      nextRound();
+    }, interval);
+  }
+  
+  function stopAutoPlay() {
+    if (autoPlayInterval) {
+      clearInterval(autoPlayInterval);
+      autoPlayInterval = null;
+    }
+  }
+  
+  // Event listeners
+  if (nextRoundBtn) {
+    nextRoundBtn.addEventListener('click', nextRound);
+  }
+  
+  if (autoPlayBtn) {
+    autoPlayBtn.addEventListener('click', function() {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      fetch(`/games/${gameId}/auto_play`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        }
+      })
+      .then(response => {
+        if (response.redirected) {
+          window.location.href = response.url;
+        } else {
+          return response.json();
+        }
+      })
+      .then(data => {
+        if (data && data.error) {
+          alert(data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while auto-playing the game.');
+      });
+    });
+  }
+  
+  if (autoPlaySlowBtn) {
+    autoPlaySlowBtn.addEventListener('click', function() {
+      startAutoPlay(1000); // 1 second between rounds
+      autoPlayBtn.classList.add('hidden');
+      autoPlaySlowBtn.classList.add('hidden');
+      document.getElementById('stop-auto-btn').classList.remove('hidden');
+    });
+  }
+  
+  const stopAutoBtn = document.getElementById('stop-auto-btn');
+  if (stopAutoBtn) {
+    stopAutoBtn.addEventListener('click', function() {
+      stopAutoPlay();
+      autoPlayBtn.classList.remove('hidden');
+      autoPlaySlowBtn.classList.remove('hidden');
+      stopAutoBtn.classList.add('hidden');
+    });
+  }
+  
+  // Auto-start for running games
+  if (<%= @game.game_state == 'running' ? 'true' : 'false' %>) {
+    startAutoPlay(500); // 500ms between rounds
+  }
+  
+  // Stop auto-play when leaving the page
+  window.addEventListener('beforeunload', stopAutoPlay);
+});
+</script> 

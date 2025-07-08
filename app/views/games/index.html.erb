@@ -1,0 +1,59 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white">
+  <div class="container mx-auto px-4 py-8">
+    <div class="text-center mb-12">
+      <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+        Rock Paper Scissors Ecosystem
+      </h1>
+      <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+        Watch 150 autonomous elements battle it out in a cellular automaton simulation until only one remains victorious!
+      </p>
+    </div>
+
+    <div class="text-center mb-8">
+      <%= link_to "Create New Simulation", new_game_path, 
+          class: "bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 shadow-lg" %>
+    </div>
+
+    <% if @games.any? %>
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <% @games.each do |game| %>
+          <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 hover:bg-white/20 transition-all duration-300">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-semibold">Game #<%= game.id %></h3>
+              <span class="px-3 py-1 rounded-full text-sm font-medium
+                <%= game.game_state == 'running' ? 'bg-yellow-500/20 text-yellow-300' : 'bg-green-500/20 text-green-300' %>">
+                <%= game.game_state.titleize %>
+              </span>
+            </div>
+            
+            <div class="space-y-2 text-sm text-gray-300">
+              <p>Board Size: <%= game.board_size %>×<%= game.board_size %></p>
+              <p>Elements per type: <%= game.elements_per_type %></p>
+              <p>Current Round: <%= game.current_round %></p>
+              <p>Created: <%= game.created_at.strftime("%B %d, %Y at %I:%M %p") %></p>
+            </div>
+
+            <div class="mt-6 space-y-2">
+              <%= link_to "View Simulation", game_path(game), 
+                  class: "block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded transition-colors duration-200" %>
+              
+              <% if game.game_state == 'running' %>
+                <%= link_to "Auto-Complete", auto_play_game_path(game), 
+                    method: :post,
+                    class: "block w-full bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded transition-colors duration-200" %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <div class="text-6xl mb-4">🎮</div>
+        <h2 class="text-2xl font-semibold mb-4">No simulations yet</h2>
+        <p class="text-gray-400 mb-8">Create your first RPS ecosystem simulation to get started!</p>
+        <%= link_to "Create First Simulation", new_game_path, 
+            class: "bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105" %>
+      </div>
+    <% end %>
+  </div>
+</div> 
