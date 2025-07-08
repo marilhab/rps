@@ -257,6 +257,16 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (autoPlayBtn) {
     autoPlayBtn.addEventListener('click', function() {
+      // Disable all buttons and show loading state
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+      });
+      
+      // Stop any existing auto-play
+      stopAutoPlay();
+      
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       fetch(`/games/${gameId}/auto_play`, {
         method: 'POST',
@@ -267,7 +277,15 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(response => {
         if (response.redirected) {
-          window.location.href = response.url;
+          // Show completion message before redirecting
+          const statusDiv = document.querySelector('.text-center.mb-8 .inline-block');
+          if (statusDiv) {
+            statusDiv.innerHTML = '<div class="text-green-800 font-semibold">🏆 Completing Game...</div>';
+          }
+          
+          setTimeout(() => {
+            window.location.href = response.url;
+          }, 500);
         } else {
           return response.json();
         }
@@ -275,11 +293,25 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(data => {
         if (data && data.error) {
           alert(data.error);
+          // Re-enable buttons on error
+          buttons.forEach(btn => {
+            btn.disabled = false;
+            if (btn.id === 'next-round-btn') btn.textContent = 'Next Round';
+            if (btn.id === 'auto-play-btn') btn.textContent = 'Auto Complete';
+            if (btn.id === 'auto-play-slow-btn') btn.textContent = 'Slow Auto';
+          });
         }
       })
       .catch(error => {
         console.error('Error:', error);
         alert('An error occurred while auto-playing the game.');
+        // Re-enable buttons on error
+        buttons.forEach(btn => {
+          btn.disabled = false;
+          if (btn.id === 'next-round-btn') btn.textContent = 'Next Round';
+          if (btn.id === 'auto-play-btn') btn.textContent = 'Auto Complete';
+          if (btn.id === 'auto-play-slow-btn') btn.textContent = 'Slow Auto';
+        });
       });
     });
   }
