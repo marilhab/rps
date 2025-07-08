@@ -43,12 +43,26 @@ class GamesController < ApplicationController
   def auto_play
     @game = Game.find(params[:id])
     
-    # Run the game to completion
-    until @game.game_over?
-      @game.next_round
+    # Check if game is already over
+    if @game.game_over?
+      redirect_to @game, notice: "Game already completed! Winner: #{@game.winner&.titleize}"
+      return
     end
     
-    redirect_to @game, notice: "Game completed! Winner: #{@game.winner&.titleize}"
+    # Run the game to completion with a safety limit
+    max_rounds = 1000  # Prevent infinite loops
+    rounds_played = 0
+    
+    until @game.game_over? || rounds_played >= max_rounds
+      @game.next_round
+      rounds_played += 1
+    end
+    
+    if rounds_played >= max_rounds
+      redirect_to @game, alert: "Game reached maximum rounds (#{max_rounds}). Current state: #{@game.count_elements}"
+    else
+      redirect_to @game, notice: "Game completed in #{rounds_played} rounds! Winner: #{@game.winner&.titleize}"
+    end
   end
 
   private
